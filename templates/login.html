@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% block title %}Sign in{% endblock %}
 {% block content %}
-<section class="auth-wrap"><div class="auth-card"><p class="eyebrow">WELCOME BACK</p><h1>Sign <em>in.</em></h1><p class="muted">Use the account details given to you by your team administrator.</p>
+<section class="auth-wrap"><div class="auth-card"><p class="eyebrow">WELCOME BACK</p><h1>Sign <em>in.</em></h1><p class="muted">Administrator access only. Sign in with the administrator credentials.</p>
 <form method="post" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 <label>Username<input name="username" autocomplete="username" required autofocus></label>
 <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
