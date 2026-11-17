@@ -7,9 +7,8 @@
 <div id="team-names">{% for name in data.keys() %}<div class="team-name-row"><input name="team_name" value="{{ name }}" maxlength="40" required aria-label="Team name"><button type="button" class="text-button remove-team">Remove</button></div>{% endfor %}</div>
 <button type="button" class="btn secondary small" id="add-team">＋ Add team</button>
 <div class="editor-roster"><h3>Assign players</h3>{% for player in players %}<div class="assignment-row"><span>{{ player.name }}</span><select name="player_{{ player.id }}">{% for team in data.keys() %}<option value="{{ team }}" {% if player.name in data[team] %}selected{% endif %}>{{ team }}</option>{% endfor %}<option value="" {% if player.name.casefold() not in assigned_names %}selected{% endif %}>Unassigned</option></select></div>{% endfor %}</div>
-<div class="editor-actions"><button class="btn secondary" name="action" value="randomize" formnovalidate>↻ Randomize / reroll</button><button class="btn primary" name="action" value="save">Save draft</button></div>
+<div class="publish-bar"><label>Publication note (optional)<input name="note" maxlength="200" placeholder="e.g. Friday evening game"></label><div class="editor-actions"><button class="btn secondary" name="action" value="randomize" formnovalidate>↻ Randomize / reroll</button><button class="btn secondary" name="action" value="save">Save draft</button><button class="btn publish" name="action" value="publish">Publish teams ↗</button></div></div>
 </form>
-<form method="post" class="publish-bar"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Publication note (optional)<input name="note" maxlength="200" placeholder="e.g. Friday evening game"></label><button class="btn publish" name="action" value="publish">Publish teams ↗</button></form>
 <script>
 const teamBox=document.getElementById('team-names');
 let previousNames=[...teamBox.querySelectorAll('input[name="team_name"]')].map(x=>x.value.trim());
