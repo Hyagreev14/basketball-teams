@@ -275,7 +275,7 @@ def manage_players():
                     save_draft(draft)
             db().commit()
         flash("Player status updated.", "success")
-    return redirect(url_for("manage"))
+    return redirect(url_for("manage_dashboard"))
 
 @app.route("/manage/edit", methods=["GET", "POST"])
 @admin_required
