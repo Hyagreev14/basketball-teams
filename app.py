@@ -206,7 +206,7 @@ def index():
 @app.route("/manage/login", methods=["GET", "POST"])
 def admin_login():
     if get_user():
-        return redirect(url_for("manage"))
+        return redirect(url_for("manage_dashboard"))
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
@@ -221,7 +221,7 @@ def admin_login():
             target = request.args.get("next", "")
             if target.startswith("/") and not target.startswith("//") and not target.startswith("/manage/login"):
                 return redirect(target)
-            return redirect(url_for("manage"))
+            return redirect(url_for("manage_dashboard"))
         flash("Invalid administrator username or password.", "error")
     return render_template("login.html")
 
@@ -233,8 +233,14 @@ def admin_logout():
     return redirect(url_for("index"))
 
 @app.route("/manage")
+def manage_root():
+    if get_user():
+        return redirect(url_for("manage_dashboard"))
+    return redirect(url_for("admin_login"))
+
+@app.route("/manage/dashboard")
 @admin_required
-def manage():
+def manage_dashboard():
     players = db().execute("SELECT * FROM players ORDER BY name").fetchall()
     teams = draft_data()
     return render_template("manage.html", players=players, teams=teams)
@@ -323,7 +329,7 @@ def edit():
                 note = request.form.get("note","").strip()
                 publish(draft, note, get_user()["id"])
                 flash("Teams published. A history snapshot was created.", "success")
-                return redirect(url_for("manage"))
+                return redirect(url_for("manage_dashboard"))
             except ValueError as exc:
                 flash(str(exc), "error")
         return redirect(url_for("edit"))
