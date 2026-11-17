@@ -101,6 +101,10 @@ The API accepts player names that already exist and are active in the roster. Ev
 - Set `COOKIE_SECURE=1` when the site is served exclusively over HTTPS.
 - This first release does not include email/password recovery. Admins can reset a friend's password from the dashboard. Historical snapshots can be loaded into a draft and republished as a new snapshot.
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
 ## Version 2.0.0
 
 Interactive friend profiles (display name, availability, and related profile controls) are intentionally out of scope for v1.0.0.
