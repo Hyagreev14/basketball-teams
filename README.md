@@ -1,42 +1,49 @@
 # Basketball Teams
 
-A lightweight basketball team management website for organizing players, publishing team assignments, and keeping a history of previous teams.
+A web application for organizing players into basketball teams, publishing daily assignments, and viewing previous team arrangements.
 
-Built with **Python and Flask**. The project is currently in development.
+Built with **Python and Flask**. This project is currently in early development.
 
 ## Planned features
 
 ### Team management
 - View the currently published teams on a public homepage.
 - Manually assign players to teams and move players between teams.
-- Optionally generate balanced teams by shuffling all registered players, regardless of their current team.
-- Reroll randomized teams as many times as needed, then make manual adjustments.
-- Keep changes as a draft until an administrator publishes them.
+- Optionally generate teams by shuffling all registered players, regardless of their current assignments.
+- Reroll randomized teams before publishing.
+- Adjust randomized assignments manually.
+- Keep edits as a draft until an administrator publishes them.
 
 ### Accounts
-- Individual accounts for friends.
-- **Version 1.0.0:** friends can sign in, view current and historical teams, and change their own password. Accounts are view-only.
+
+**Version 1.0.0 — View-only accounts**
+- Each friend has an individual account.
+- Friends can sign in, view current teams and past team history, and change their own password.
+- Friend accounts cannot edit team assignments or player details.
 - Administrators can create, disable, and reset accounts.
-- **Version 2.0.0:** planned player profile features, such as display-name and availability management.
+
+**Version 2.0.0 — Interactive profiles**
+- Friends will be able to manage their own player profile.
+- Planned profile options include display-name and availability management.
 
 ### Team history
-- Save a snapshot whenever an administrator publishes teams.
-- Browse previous team assignments.
-- Keep published history immutable. Restoring an older arrangement creates a new publication rather than rewriting the past.
+- Save a snapshot whenever an administrator publishes a team arrangement.
+- Browse previously published arrangements.
+- Keep published snapshots immutable.
+- Restoring an older arrangement will create a new publication rather than overwrite history.
 
 ### REST API
-A versioned API will allow approved API-key holders to read and update the same team data used by the website.
 
-Planned endpoints include:
+A versioned REST API will let authorized API-key holders read and update the same team data used by the website.
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/v1/teams` | Get the current teams |
-| `PUT` | `/api/v1/teams` | Publish/update team assignments |
-| `GET` | `/api/v1/teams/<yyyymmdd>` | Get teams from a date |
+| `PUT` | `/api/v1/teams` | Update the current team assignments |
+| `GET` | `/api/v1/teams/<yyyymmdd>` | Get teams from a particular date |
 | `GET` | `/api/v1/players` | List registered players |
 
-API write access will require an API key. Keys should be stored as hashes and shown only when first generated.
+API write access will require an API key. Keys will be stored securely as hashes and shown only when first generated.
 
 ## Planned pages
 
@@ -44,35 +51,39 @@ API write access will require an API key. Keys should be stored as hashes and sh
 | --- | --- |
 | `/` | Public view of the current teams |
 | `/login` | Sign in to an account |
+| `/logout` | Sign out |
+| `/account` | View account details and change password |
 | `/manage` | Administrator dashboard |
 | `/manage/edit` | Edit, randomize, and publish teams |
 | `/manage/api-key` | Manage API keys |
 | `/manage/previous/<yyyymmdd>` | View a historical team snapshot |
 
-Administrator pages will require authentication. Keeping a route unlinked from the homepage is not a substitute for access control.
+Administrator routes will require authentication and authorization. Hiding a route or leaving it out of the homepage navigation is not a security measure.
 
-## Tech stack
+## Technology
 
-- **Backend:** Python, Flask
-- **Database:** SQLite for local development; a production database such as MySQL for hosting
+- **Backend:** Python and Flask
+- **Database:** SQLite for local development; a production database such as MySQL may be used for hosting
 - **Frontend:** HTML, CSS, and JavaScript
 - **API:** JSON over HTTP, versioned under `/api/v1/`
 
-The exact structure and dependencies will be documented as implementation progresses.
+The final dependencies and project structure will be documented as implementation progresses.
 
-## Development
+## Development status
 
-The application is not yet implemented. Setup and run instructions will be added once the initial application structure is in place.
+The application has not been implemented yet. Installation and run instructions will be added once the initial application structure is ready.
 
-## Version roadmap
+## Roadmap
 
-- [ ] Initial application and database structure
-- [ ] Team viewing and administrator team editor
-- [ ] Optional team randomizer and draft/publish workflow
-- [ ] Individual view-only accounts for **1.0.0**
-- [ ] Team history and REST API
-- [ ] Player profile and availability features for **2.0.0**
+- [ ] Define the initial application structure and database schema
+- [ ] Build the public team-viewing page
+- [ ] Build the administrator dashboard and team editor
+- [ ] Add random team generation and draft/publish workflow
+- [ ] Add team history
+- [ ] Add the REST API and API-key management
+- [ ] Add individual view-only accounts for version **1.0.0**
+- [ ] Add interactive player profiles for version **2.0.0**
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+No license has been selected yet. Until a license is added, the project remains under the default copyright terms.
