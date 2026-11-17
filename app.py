@@ -323,7 +323,7 @@ def manage_users():
 @app.route("/manage/edit", methods=["GET", "POST"])
 @admin_required
 def edit():
-    players = db().execute("SELECT name FROM players WHERE active=1 ORDER BY name").fetchall()
+    players = db().execute("SELECT id,name FROM players WHERE active=1 ORDER BY name").fetchall()
     names = [p["name"] for p in players]
     data = draft_data()
     if request.method == "POST":
@@ -335,7 +335,8 @@ def edit():
             else:
                 draft = {x.strip(): [] for x in team_names}
                 for name in names:
-                    team = request.form.get("player_" + str(db().execute("SELECT id FROM players WHERE name=?", (name,)).fetchone()["id"]))
+                    player_id = db().execute("SELECT id FROM players WHERE name=? COLLATE NOCASE", (name,)).fetchone()["id"]
+                    team = request.form.get("player_" + str(player_id))
                     if team in draft:
                         draft[team].append(name)
                 try:
@@ -368,7 +369,7 @@ def edit():
         return redirect(url_for("edit"))
     if not data:
         data = {"Team 1": [], "Team 2": []}
-    return render_template("edit.html", data=data, players=names)
+    return render_template("edit.html", data=data, players=players)
 
 @app.route("/manage/api-key", methods=["GET", "POST"])
 @admin_required
@@ -398,6 +399,20 @@ def history():
     entries = db().execute("""SELECT h.id,h.published_at,h.note,u.username
         FROM history h LEFT JOIN users u ON u.id=h.published_by ORDER BY h.id DESC""").fetchall()
     return render_template("history.html", entries=entries)
+
+@app.route("/manage/restore/<int:history_id>", methods=["POST"])
+@admin_required
+def restore_history(history_id):
+    entry = db().execute("SELECT data FROM history WHERE id=?", (history_id,)).fetchone()
+    if not entry:
+        abort(404)
+    try:
+        restored = clean_assignments(json.loads(entry["data"]))
+        save_draft(restored)
+        flash("Historical lineup loaded as a draft. Review it, then publish when ready.", "success")
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        flash("Could not restore this snapshot: " + str(exc), "error")
+    return redirect(url_for("edit"))
 
 @app.route("/history/<int:history_id>")
 def history_detail(history_id):
