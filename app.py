@@ -465,7 +465,9 @@ def api_teams():
                         "published_at": (db().execute("SELECT published_at FROM history ORDER BY id DESC LIMIT 1").fetchone() or {"published_at": None})["published_at"]})
     @api_key_required
     def update():
-        body = request.get_json(silent=True) or {}
+        body = request.get_json(silent=True)
+        if not isinstance(body, dict):
+            return api_error("Request body must be a JSON object.", 400)
         try:
             teams = publish(body.get("teams"), body.get("note","API update"), None)
             return jsonify({"ok": True, "teams": teams}), 200
