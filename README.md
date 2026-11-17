@@ -32,7 +32,7 @@ Open http://127.0.0.1:5000. The SQLite database is created automatically in `ins
 
 ## First-time admin setup
 
-Run `flask --app app create-admin` once and follow the prompts. Create the single administrator before deploying or sharing the site. Admin access is available at `/manage/login`; the homepage deliberately contains no link to the admin area. All `/manage` routes require the administrator session.
+Run `flask --app app create-admin` once and follow the prompts. Create the single administrator before deploying or sharing the site. Open `/manage` to enter the admin area: it redirects to `/manage/login` when signed out and to `/manage/dashboard` when authenticated. The homepage deliberately contains no link to the admin area. All `/manage` routes except the login page require the administrator session. The dashboard links to the editor, API-key controls, publication history and sign-out.
 
 ## PythonAnywhere deployment
 
