@@ -11,7 +11,7 @@ INSTANCE_DIR = BASE_DIR / "instance"
 INSTANCE_DIR.mkdir(exist_ok=True)
 app = Flask(__name__)
 app.config.update(
-    SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-this-before-deploying"),
+    SECRET_KEY=os.environ.get("SECRET_KEY") or secrets.token_hex(32),
     DATABASE=os.environ.get("DATABASE_PATH", str(INSTANCE_DIR / "basketball.sqlite3")),
     SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1",
@@ -200,7 +200,7 @@ def create_admin():
         raise click.ClickException("An administrator already exists.")
     username = click.prompt("Admin username").strip()
     password = click.prompt("Admin password", hide_input=True, confirmation_prompt=True)
-    if len(username) < 3 or len(password) < 10:
+    if len(username) < 3 or len(username) > 40 or len(password) < 10:
         raise click.ClickException("Username must be at least 3 characters and password at least 10.")
     db().execute("INSERT INTO users(username,password_hash,role) VALUES(?,?,'admin')",
                  (username, generate_password_hash(password)))
@@ -302,7 +302,7 @@ def manage_users():
         password = request.form.get("password","")
         pid = request.form.get("player_id", type=int) or None
         role = request.form.get("role", "friend")
-        if len(username) < 3 or len(password) < 10 or role not in ("friend","admin"):
+        if len(username) < 3 or len(username) > 40 or len(password) < 10 or role not in ("friend","admin"):
             flash("Use a username of 3+ characters and password of 10+ characters.", "error")
         else:
             try:
