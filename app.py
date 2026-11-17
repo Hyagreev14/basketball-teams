@@ -369,7 +369,16 @@ def edit():
                 flash("New randomized draft created. You can reroll or adjust it.", "success")
         elif action == "publish":
             try:
-                draft = clean_assignments(data)
+                team_names = request.form.getlist("team_name")
+                if len(team_names) < 2 or any(not x.strip() for x in team_names) or len(set(x.strip().casefold() for x in team_names)) != len(team_names):
+                    raise ValueError("Create at least two teams with unique, non-empty names.")
+                draft = {x.strip(): [] for x in team_names}
+                for name in names:
+                    player_id = db().execute("SELECT id FROM players WHERE name=? COLLATE NOCASE", (name,)).fetchone()["id"]
+                    team = request.form.get("player_" + str(player_id))
+                    if team in draft:
+                        draft[team].append(name)
+                draft = clean_assignments(draft)
                 note = request.form.get("note","").strip()
                 publish(draft, note, get_user()["id"])
                 flash("Teams published. A history snapshot was created.", "success")
