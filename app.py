@@ -278,8 +278,18 @@ def manage_players():
                 flash("That player already exists.", "error")
     elif action == "toggle":
         pid = request.form.get("player_id", type=int)
-        db().execute("UPDATE players SET active=1-active WHERE id=?", (pid,))
-        db().commit()
+        player = db().execute("SELECT name,active FROM players WHERE id=?", (pid,)).fetchone()
+        if player:
+            db().execute("UPDATE players SET active=1-active WHERE id=?", (pid,))
+            if player["active"]:
+                db().execute("DELETE FROM assignments WHERE player_id=?", (pid,))
+                saved = db().execute("SELECT data FROM drafts WHERE id=1").fetchone()
+                if saved:
+                    draft = json.loads(saved["data"])
+                    for team in draft.values():
+                        team[:] = [person for person in team if person.casefold() != player["name"].casefold()]
+                    save_draft(draft)
+            db().commit()
         flash("Player status updated.", "success")
     return redirect(url_for("manage"))
 
@@ -369,7 +379,8 @@ def edit():
         return redirect(url_for("edit"))
     if not data:
         data = {"Team 1": [], "Team 2": []}
-    return render_template("edit.html", data=data, players=players)
+    assigned_names = {person.casefold() for group in data.values() for person in group}
+    return render_template("edit.html", data=data, players=players, assigned_names=assigned_names)
 
 @app.route("/manage/api-key", methods=["GET", "POST"])
 @admin_required
