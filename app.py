@@ -101,14 +101,14 @@ def get_user():
     uid = session.get("user_id")
     if not uid:
         return None
-    return db().execute("SELECT * FROM users WHERE id=? AND active=1", (uid,)).fetchone()
+    return db().execute("SELECT * FROM users WHERE id=? AND active=1 AND role='admin'", (uid,)).fetchone()
 
 def login_required(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
         if not get_user():
             flash("Please sign in first.", "info")
-            return redirect(url_for("login", next=request.path))
+            return redirect(url_for("admin_login", next=request.path))
         return fn(*args, **kwargs)
     return wrapped
 
@@ -119,8 +119,6 @@ def admin_required(fn):
         if not user:
             flash("Please sign in first.", "info")
             return redirect(url_for("login", next=request.path))
-        if user["role"] != "admin":
-            abort(403)
         return fn(*args, **kwargs)
     return wrapped
 
@@ -205,7 +203,7 @@ def create_admin():
     db().execute("INSERT INTO users(username,password_hash,role) VALUES(?,?,'admin')",
                  (username, generate_password_hash(password)))
     db().commit()
-    click.echo("Administrator created. Sign in at /login.")
+    click.echo("Administrator created. Open /manage/login to sign in.")
 
 @app.route("/")
 def index():
@@ -213,55 +211,41 @@ def index():
     latest = db().execute("SELECT published_at FROM history ORDER BY id DESC LIMIT 1").fetchone()
     return render_template("index.html", teams=teams, latest=latest)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/manage/login", methods=["GET", "POST"])
+def admin_login():
+    if get_user():
+        return redirect(url_for("manage"))
     if request.method == "POST":
-        username, password = request.form.get("username","").strip(), request.form.get("password","")
-        user = db().execute("SELECT * FROM users WHERE username=? COLLATE NOCASE AND active=1", (username,)).fetchone()
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        user = db().execute(
+            "SELECT * FROM users WHERE username=? COLLATE NOCASE AND active=1 AND role='admin'",
+            (username,)
+        ).fetchone()
         if user and check_password_hash(user["password_hash"], password):
             session.clear()
             session["user_id"] = user["id"]
-            flash("Welcome back.", "success")
+            flash("Administrator signed in.", "success")
             target = request.args.get("next", "")
-            if target.startswith("/") and not target.startswith("//"):
+            if target.startswith("/") and not target.startswith("//") and not target.startswith("/manage/login"):
                 return redirect(target)
-            return redirect(url_for("manage") if user["role"] == "admin" else url_for("index"))
-        flash("Invalid username or password.", "error")
+            return redirect(url_for("manage"))
+        flash("Invalid administrator username or password.", "error")
     return render_template("login.html")
 
-@app.route("/logout", methods=["POST"])
-@login_required
-def logout():
+@app.route("/manage/logout", methods=["POST"])
+@admin_required
+def admin_logout():
     session.clear()
-    flash("You have been signed out.", "success")
+    flash("Administrator signed out.", "success")
     return redirect(url_for("index"))
-
-@app.route("/account", methods=["GET", "POST"])
-@login_required
-def account():
-    user = get_user()
-    if request.method == "POST":
-        old, new = request.form.get("current_password",""), request.form.get("new_password","")
-        row = db().execute("SELECT password_hash FROM users WHERE id=?", (user["id"],)).fetchone()
-        if not check_password_hash(row["password_hash"], old):
-            flash("Current password is incorrect.", "error")
-        elif len(new) < 10:
-            flash("New password must be at least 10 characters.", "error")
-        else:
-            db().execute("UPDATE users SET password_hash=? WHERE id=?", (generate_password_hash(new), user["id"]))
-            db().commit()
-            flash("Password updated.", "success")
-            return redirect(url_for("account"))
-    return render_template("account.html")
 
 @app.route("/manage")
 @admin_required
 def manage():
-    users = db().execute("""SELECT u.id,u.username,u.role,u.active,p.name player_name
-        FROM users u LEFT JOIN players p ON p.id=u.player_id ORDER BY u.role,u.username""").fetchall()
     players = db().execute("SELECT * FROM players ORDER BY name").fetchall()
     teams = draft_data()
-    return render_template("manage.html", users=users, players=players, teams=teams)
+    return render_template("manage.html", players=players, teams=teams)
 
 @app.route("/manage/players", methods=["POST"])
 @admin_required
@@ -293,43 +277,6 @@ def manage_players():
                     save_draft(draft)
             db().commit()
         flash("Player status updated.", "success")
-    return redirect(url_for("manage"))
-
-@app.route("/manage/users", methods=["POST"])
-@admin_required
-def manage_users():
-    action = request.form.get("action")
-    if action == "create":
-        username = request.form.get("username","").strip()
-        password = request.form.get("password","")
-        pid = request.form.get("player_id", type=int) or None
-        role = request.form.get("role", "friend")
-        if len(username) < 3 or len(username) > 40 or len(password) < 10 or role not in ("friend","admin"):
-            flash("Use a username of 3+ characters and password of 10+ characters.", "error")
-        else:
-            try:
-                db().execute("INSERT INTO users(username,password_hash,role,player_id) VALUES(?,?,?,?)",
-                    (username, generate_password_hash(password), role, pid))
-                db().commit()
-                flash("Account created.", "success")
-            except sqlite3.IntegrityError:
-                flash("Username already exists or player already has an account.", "error")
-    elif action == "toggle":
-        uid = request.form.get("user_id", type=int)
-        if uid != get_user()["id"]:
-            db().execute("UPDATE users SET active=1-active WHERE id=? AND role!='admin' OR id=? AND role='admin'",
-                         (uid, uid))
-            db().commit()
-            flash("Account status updated.", "success")
-    elif action == "reset":
-        uid = request.form.get("user_id", type=int)
-        password = request.form.get("password","")
-        if len(password) >= 10:
-            db().execute("UPDATE users SET password_hash=? WHERE id=?", (generate_password_hash(password), uid))
-            db().commit()
-            flash("Password reset.", "success")
-        else:
-            flash("Temporary password must be at least 10 characters.", "error")
     return redirect(url_for("manage"))
 
 @app.route("/manage/edit", methods=["GET", "POST"])
