@@ -72,6 +72,8 @@ def init_db():
       revoked INTEGER NOT NULL DEFAULT 0
     );
     """)
+    # Remove legacy friend accounts from databases created by earlier builds.
+    conn.execute("DELETE FROM users WHERE role != 'admin'")
     conn.commit()
     conn.close()
 
@@ -103,22 +105,13 @@ def get_user():
         return None
     return db().execute("SELECT * FROM users WHERE id=? AND active=1 AND role='admin'", (uid,)).fetchone()
 
-def login_required(fn):
-    @wraps(fn)
-    def wrapped(*args, **kwargs):
-        if not get_user():
-            flash("Please sign in first.", "info")
-            return redirect(url_for("admin_login", next=request.path))
-        return fn(*args, **kwargs)
-    return wrapped
-
 def admin_required(fn):
     @wraps(fn)
     def wrapped(*args, **kwargs):
         user = get_user()
         if not user:
             flash("Please sign in first.", "info")
-            return redirect(url_for("login", next=request.path))
+            return redirect(url_for("admin_login", next=request.path))
         return fn(*args, **kwargs)
     return wrapped
 
