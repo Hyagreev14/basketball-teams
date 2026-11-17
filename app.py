@@ -470,6 +470,17 @@ def api_history(history_id):
     if not entry: return api_error("History entry not found.", 404)
     return jsonify({"published_at": entry["published_at"], "note": entry["note"], "teams": json.loads(entry["data"])})
 
+@app.route("/api/v1/teams/<date_string>")
+def api_teams_by_date(date_string):
+    try:
+        day = datetime.strptime(date_string, "%Y%m%d").strftime("%Y-%m-%d")
+    except ValueError:
+        return api_error("Date must use YYYYMMDD format.", 400)
+    entry = db().execute("SELECT id,published_at,data,note FROM history WHERE substr(published_at,1,10)=? ORDER BY id DESC LIMIT 1", (day,)).fetchone()
+    if not entry:
+        return api_error("No published lineup found for that date.", 404)
+    return jsonify({"id": entry["id"], "published_at": entry["published_at"], "note": entry["note"], "teams": json.loads(entry["data"])})
+
 @app.route("/api/v1/players")
 def api_players():
     rows = db().execute("SELECT id,name FROM players WHERE active=1 ORDER BY name").fetchall()
