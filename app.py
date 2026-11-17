@@ -464,21 +464,22 @@ def api_teams():
             return api_error(str(exc), 400)
     return update()
 
-@app.route("/api/v1/teams/<int:history_id>")
-def api_history(history_id):
-    entry = db().execute("SELECT published_at,data,note FROM history WHERE id=?", (history_id,)).fetchone()
-    if not entry: return api_error("History entry not found.", 404)
-    return jsonify({"published_at": entry["published_at"], "note": entry["note"], "teams": json.loads(entry["data"])})
-
-@app.route("/api/v1/teams/<date_string>")
-def api_teams_by_date(date_string):
-    try:
-        day = datetime.strptime(date_string, "%Y%m%d").strftime("%Y-%m-%d")
-    except ValueError:
-        return api_error("Date must use YYYYMMDD format.", 400)
-    entry = db().execute("SELECT id,published_at,data,note FROM history WHERE substr(published_at,1,10)=? ORDER BY id DESC LIMIT 1", (day,)).fetchone()
+@app.route("/api/v1/teams/<history_ref>")
+def api_history(history_ref):
+    if len(history_ref) == 8 and history_ref.isdigit():
+        try:
+            day = datetime.strptime(history_ref, "%Y%m%d").strftime("%Y-%m-%d")
+        except ValueError:
+            return api_error("Date must use YYYYMMDD format.", 400)
+        entry = db().execute("SELECT id,published_at,data,note FROM history WHERE substr(published_at,1,10)=? ORDER BY id DESC LIMIT 1", (day,)).fetchone()
+    else:
+        try:
+            history_id = int(history_ref)
+        except ValueError:
+            return api_error("Use a history ID or YYYYMMDD date.", 400)
+        entry = db().execute("SELECT id,published_at,data,note FROM history WHERE id=?", (history_id,)).fetchone()
     if not entry:
-        return api_error("No published lineup found for that date.", 404)
+        return api_error("Historical lineup not found.", 404)
     return jsonify({"id": entry["id"], "published_at": entry["published_at"], "note": entry["note"], "teams": json.loads(entry["data"])})
 
 @app.route("/api/v1/players")
