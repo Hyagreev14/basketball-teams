@@ -9,7 +9,6 @@ A full-stack basketball team manager built with Flask. It provides a public team
 - Manual assignments, configurable team names, randomization and unlimited rerolls.
 - Drafts remain private until explicitly published.
 - Every publication creates a permanent history entry.
-- Friend accounts can view teams/history and change their own password.
 - API keys are stored as SHA-256 hashes and shown only once.
 - API write access publishes a new snapshot, just like the website.
 
