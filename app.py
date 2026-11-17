@@ -40,10 +40,9 @@ def init_db():
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('admin','friend')),
-      player_id INTEGER UNIQUE, active INTEGER NOT NULL DEFAULT 1,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(player_id) REFERENCES players(id) ON DELETE SET NULL
+      password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role='admin'),
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS players (
       id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE,
