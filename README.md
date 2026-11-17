@@ -99,7 +99,7 @@ The API accepts player names that already exist and are active in the roster. Ev
 - API keys are never stored in plaintext.
 - Use HTTPS, a strong random `SECRET_KEY`, and secure deployment settings in production.
 - Set `COOKIE_SECURE=1` when the site is served exclusively over HTTPS.
-- This first release does not include email/password recovery. Admins can reset a friend's password from the dashboard.
+- This first release does not include email/password recovery. Admins can reset a friend's password from the dashboard. Historical snapshots can be loaded into a draft and republished as a new snapshot.
 
 ## Version 2.0.0
 
