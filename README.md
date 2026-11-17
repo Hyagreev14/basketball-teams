@@ -51,6 +51,7 @@ if project not in sys.path:
     sys.path.insert(0, project)
 os.environ['SECRET_KEY'] = 'PASTE-A-LONG-RANDOM-SECRET-HERE'
 os.environ['DATABASE_PATH'] = '/home/YOUR_USERNAME/basketball-teams/instance/basketball.sqlite3'
+os.environ['COOKIE_SECURE'] = '1'
 from app import app as application
 ```
 
