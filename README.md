@@ -67,7 +67,8 @@ All endpoints are under `/api/v1/`.
 | --- | --- | --- |
 | GET | `/api/v1/teams` | Public |
 | PUT | `/api/v1/teams` | API key |
-| GET | `/api/v1/teams/<history_id>` | Public historical snapshot |
+| GET | `/api/v1/teams/<history_id>` | Public historical snapshot by ID |
+| GET | `/api/v1/teams/<yyyymmdd>` | Latest snapshot published on that date |
 | GET | `/api/v1/players` | Public active players |
 
 Example update request:
