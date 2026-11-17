@@ -468,8 +468,11 @@ def api_teams():
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
             return api_error("Request body must be a JSON object.", 400)
+        note = body.get("note", "API update")
+        if not isinstance(note, str):
+            return api_error("The note field must be a string.", 400)
         try:
-            teams = publish(body.get("teams"), body.get("note","API update"), None)
+            teams = publish(body.get("teams"), note, None)
             return jsonify({"ok": True, "teams": teams}), 200
         except (ValueError, TypeError) as exc:
             return api_error(str(exc), 400)
