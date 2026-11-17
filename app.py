@@ -223,7 +223,9 @@ def login():
             session["user_id"] = user["id"]
             flash("Welcome back.", "success")
             target = request.args.get("next", "")
-            return redirect(target if target.startswith("/") and not target.startswith("//") else url_for("index"))
+            if target.startswith("/") and not target.startswith("//"):
+                return redirect(target)
+            return redirect(url_for("manage") if user["role"] == "admin" else url_for("index"))
         flash("Invalid username or password.", "error")
     return render_template("login.html")
 
