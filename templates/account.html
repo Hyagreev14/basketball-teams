@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}My account{% endblock %}
+{% block content %}<section class="page-head"><p class="eyebrow">YOUR SPACE</p><h1>Account <em>settings.</em></h1><p class="muted">Signed in as <strong>{{ current_user.username }}</strong> · {{ current_user.role }}</p></section>
+<section class="panel narrow"><h2>Change password</h2><p class="muted">Choose a password with at least 10 characters.</p><form method="post" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Current password<input type="password" name="current_password" autocomplete="current-password" required></label>
+<label>New password<input type="password" name="new_password" minlength="10" autocomplete="new-password" required></label><button class="btn primary">Update password</button></form></section>{% endblock %}

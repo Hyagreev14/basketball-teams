@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block title %}Team history{% endblock %}
+{% block content %}<section class="page-head"><p class="eyebrow">THE RECORD</p><h1>Team <em>history.</em></h1><p class="muted">Every published lineup is kept as a permanent snapshot.</p></section>
+<section class="panel"><div class="simple-list">{% for e in entries %}<a class="history-row" href="{{ url_for('history_detail',history_id=e.id) }}"><span><b>{{ e.published_at|replace('T',' ')|replace('+00:00',' UTC') }}</b><small>{{ e.note or 'Team lineup published' }} · by {{ e.username or 'API / system' }}</small></span><strong>↗</strong></a>{% else %}<p class="empty">No published lineups yet.</p>{% endfor %}</div></section>{% endblock %}

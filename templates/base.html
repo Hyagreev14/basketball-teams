@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>{% block title %}CourtSide{% endblock %} · Basketball Teams</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">B</span><span>COURTSIDE<small>TEAM MANAGER</small></span></a>
+  <nav>
+    <a href="{{ url_for('index') }}">Teams</a>
+    <a href="{{ url_for('history') }}">History</a>
+    {% if current_user %}
+      {% if current_user.role == 'admin' %}<a href="{{ url_for('manage') }}">Manage</a>{% endif %}
+      <a href="{{ url_for('account') }}">Account</a>
+      <form class="nav-form" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="nav-link">Sign out</button></form>
+    {% else %}<a href="{{ url_for('login') }}">Sign in</a>{% endif %}
+  </nav>
+</header>
+<main class="shell">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer><span>COURTSIDE · BASKETBALL TEAM MANAGER</span><span>Play together. Stay balanced.</span></footer>
+</body>
+</html>

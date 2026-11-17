@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Current teams{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">THE LINEUP</p><h1>Today's <em>teams.</em></h1><p class="muted">The latest published team arrangement, all in one place.</p></div>
+  <div class="hero-stamp"><span class="live-dot"></span> CURRENT LINEUP</div>
+</section>
+{% if teams %}
+  <div class="team-grid">
+  {% for name, players in teams.items() %}
+    <section class="team-card">
+      <div class="team-heading"><div><p class="eyebrow">SQUAD {{ loop.index }}</p><h2>{{ name }}</h2></div><span class="count">{{ players|length }} <small>PLAYERS</small></span></div>
+      {% if players %}<ol class="roster">{% for player in players %}<li><span class="player-number">{{ "%02d"|format(loop.index) }}</span>{{ player.name }}</li>{% endfor %}</ol>
+      {% else %}<p class="empty">No players assigned yet.</p>{% endif %}
+    </section>
+  {% endfor %}
+  </div>
+{% else %}
+  <section class="empty-state"><div class="empty-icon">◎</div><h2>No teams published yet</h2><p>The administrator hasn't published the first lineup. Check back soon.</p></section>
+{% endif %}
+<div class="below-note">{% if latest %}Last published {{ latest.published_at|replace('T',' ')|replace('+00:00',' UTC') }}{% else %}Waiting for the first publication{% endif %}<a href="{{ url_for('history') }}">View team history ↗</a></div>
+{% endblock %}

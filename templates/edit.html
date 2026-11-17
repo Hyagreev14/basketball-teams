@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Team editor{% endblock %}
+{% block content %}
+<section class="page-head"><p class="eyebrow">DRAFT WORKSPACE</p><h1>Build the <em>lineup.</em></h1><p class="muted">Changes stay private until you publish. Every publication is saved to history.</p></section>
+{% if not players %}<div class="alert info">Add players in the admin dashboard before building teams.</div>{% endif %}
+<form method="post" class="panel editor" id="editor"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<div class="panel-title"><div><p class="eyebrow">TEAM SETUP</p><h2>Teams and assignments</h2></div><span class="tag">DRAFT ONLY</span></div>
+<div id="team-names">{% for name in data.keys() %}<div class="team-name-row"><input name="team_name" value="{{ name }}" maxlength="40" required aria-label="Team name"><button type="button" class="text-button remove-team">Remove</button></div>{% endfor %}</div>
+<button type="button" class="btn secondary small" id="add-team">＋ Add team</button>
+<div class="editor-roster"><h3>Assign players</h3>{% for player in players %}<div class="assignment-row"><span>{{ player }}</span><select name="player_{{ loop.index0 }}" data-player="{{ player }}">{% for team in data.keys() %}<option value="{{ team }}" {% if player in data[team] %}selected{% endif %}>{{ team }}</option>{% endfor %}<option value="">Unassigned</option></select><input type="hidden" name="player_id_map" value="{{ player }}"></div>{% endfor %}</div>
+<div class="editor-actions"><button class="btn secondary" name="action" value="randomize" formnovalidate>↻ Randomize / reroll</button><button class="btn primary" name="action" value="save">Save draft</button></div>
+</form>
+<form method="post" class="publish-bar"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Publication note (optional)<input name="note" maxlength="200" placeholder="e.g. Friday evening game"></label><button class="btn publish" name="action" value="publish">Publish teams ↗</button></form>
+<script>
+const teamBox=document.getElementById('team-names');
+function syncOptions(){const names=[...teamBox.querySelectorAll('input[name="team_name"]')].map(x=>x.value.trim()).filter(Boolean);document.querySelectorAll('.assignment-row select').forEach(s=>{const selected=s.value;s.innerHTML='';names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;s.append(o)});const u=document.createElement('option');u.value='';u.textContent='Unassigned';s.append(u);s.value=names.includes(selected)?selected:'';});}
+document.getElementById('add-team').addEventListener('click',()=>{const row=document.createElement('div');row.className='team-name-row';const i=document.createElement('input');i.name='team_name';i.value='Team '+(teamBox.children.length+1);i.maxLength=40;i.required=true;i.addEventListener('input',syncOptions);const b=document.createElement('button');b.type='button';b.className='text-button remove-team';b.textContent='Remove';row.append(i,b);teamBox.append(row);syncOptions();});
+teamBox.addEventListener('input',syncOptions);teamBox.addEventListener('click',e=>{if(e.target.classList.contains('remove-team')&&teamBox.children.length>2){e.target.parentElement.remove();syncOptions();}});
+document.querySelectorAll('.assignment-row select').forEach(s=>s.addEventListener('change',()=>{}));
+document.getElementById('editor').addEventListener('submit',e=>{const btn=e.submitter;if(btn&&btn.value==='save'){document.querySelectorAll('.assignment-row select').forEach(s=>{const old=s.name;const index=[...document.querySelectorAll('.assignment-row select')].indexOf(s);s.name='player_'+s.dataset.player;});}});
+</script>
+{% endblock %}

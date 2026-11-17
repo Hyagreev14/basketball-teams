@@ -1,89 +1,106 @@
 # Basketball Teams
 
-A web application for organizing players into basketball teams, publishing daily assignments, and viewing previous team arrangements.
+A full-stack basketball team manager built with Flask. It provides a public team page, an authenticated admin workspace, individual view-only friend accounts, publish-only history snapshots, and a versioned JSON API.
 
-Built with **Python and Flask**. This project is currently in early development.
+## Version 1.0.0 features
 
-## Planned features
+- Public current-team page and public historical snapshots.
+- Admin-only player and account management.
+- Manual assignments, configurable team names, randomization and unlimited rerolls.
+- Drafts remain private until explicitly published.
+- Every publication creates a permanent history entry.
+- Friend accounts can view teams/history and change their own password.
+- API keys are stored as SHA-256 hashes and shown only once.
+- API write access publishes a new snapshot, just like the website.
 
-### Team management
-- View the currently published teams on a public homepage.
-- Manually assign players to teams and move players between teams.
-- Optionally generate teams by shuffling all registered players, regardless of their current assignments.
-- Reroll randomized teams before publishing.
-- Adjust randomized assignments manually.
-- Keep edits as a draft until an administrator publishes them.
+## Local setup
 
-### Accounts
+Requires Python 3.10 or newer.
 
-**Version 1.0.0 — View-only accounts**
-- Each friend has an individual account.
-- Friends can sign in, view current teams and past team history, and change their own password.
-- Friend accounts cannot edit team assignments or player details.
-- Administrators can create, disable, and reset accounts.
+```bash
+python -m venv .venv
+# Windows:
+.venv\\Scripts\\activate
+# macOS/Linux:
+source .venv/bin/activate
 
-**Version 2.0.0 — Interactive profiles**
-- Friends will be able to manage their own player profile.
-- Planned profile options include display-name and availability management.
+pip install -r requirements.txt
+flask --app app create-admin
+flask --app app run
+```
 
-### Team history
-- Save a snapshot whenever an administrator publishes a team arrangement.
-- Browse previously published arrangements.
-- Keep published snapshots immutable.
-- Restoring an older arrangement will create a new publication rather than overwrite history.
+Open http://127.0.0.1:5000. The SQLite database is created automatically in `instance/basketball.sqlite3`.
 
-### REST API
+## First-time admin setup
 
-A versioned REST API will let authorized API-key holders read and update the same team data used by the website.
+Run `flask --app app create-admin` once and follow the prompts. Create the first admin before deploying or sharing the site. The admin dashboard is protected by login and role checks; hiding its URL is not security.
 
-| Method | Endpoint | Purpose |
+## PythonAnywhere deployment
+
+1. Create a **Python 3.10+** web app using the manual Flask configuration.
+2. Clone this repository into your PythonAnywhere home directory.
+3. Create and activate a virtual environment, then install `requirements.txt`.
+4. In the Web tab, set the source directory to the repository folder and the WSGI file to import `application` from `wsgi.py`.
+5. Set the virtualenv path to your environment.
+6. In the WSGI configuration file, ensure the project directory is on `sys.path` and set a strong secret key before importing the app:
+
+```python
+import os, sys
+project = '/home/YOUR_USERNAME/basketball-teams'
+if project not in sys.path:
+    sys.path.insert(0, project)
+os.environ['SECRET_KEY'] = 'PASTE-A-LONG-RANDOM-SECRET-HERE'
+os.environ['DATABASE_PATH'] = '/home/YOUR_USERNAME/basketball-teams/instance/basketball.sqlite3'
+from app import app as application
+```
+
+7. In a PythonAnywhere Bash console, activate the same virtualenv and run `flask --app app create-admin`.
+8. Reload the web app from the Web tab.
+
+Keep the database in a persistent directory outside temporary deployment/build folders. Back it up regularly. Do not commit the database, passwords, API keys, or secret key.
+
+## REST API
+
+All endpoints are under `/api/v1/`.
+
+| Method | Endpoint | Access |
 | --- | --- | --- |
-| `GET` | `/api/v1/teams` | Get the current teams |
-| `PUT` | `/api/v1/teams` | Update the current team assignments |
-| `GET` | `/api/v1/teams/<yyyymmdd>` | Get teams from a particular date |
-| `GET` | `/api/v1/players` | List registered players |
+| GET | `/api/v1/teams` | Public |
+| PUT | `/api/v1/teams` | API key |
+| GET | `/api/v1/teams/<history_id>` | Public historical snapshot |
+| GET | `/api/v1/players` | Public active players |
 
-API write access will require an API key. Keys will be stored securely as hashes and shown only when first generated.
+Example update request:
 
-## Planned pages
+```json
+{
+  "note": "Friday game",
+  "teams": {
+    "Blue": ["Player One", "Player Two"],
+    "Red": ["Player Three", "Player Four"]
+  }
+}
+```
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Public view of the current teams |
-| `/login` | Sign in to an account |
-| `/logout` | Sign out |
-| `/account` | View account details and change password |
-| `/manage` | Administrator dashboard |
-| `/manage/edit` | Edit, randomize, and publish teams |
-| `/manage/api-key` | Manage API keys |
-| `/manage/previous/<yyyymmdd>` | View a historical team snapshot |
+```bash
+curl -X PUT "https://YOUR-SITE.pythonanywhere.com/api/v1/teams" \\
+  -H "X-API-Key: YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"note":"Friday game","teams":{"Blue":["Player One"],"Red":["Player Two"]}}'
+```
 
-Administrator routes will require authentication and authorization. Hiding a route or leaving it out of the homepage navigation is not a security measure.
+The API accepts player names that already exist and are active in the roster. Every player may appear at most once. An API update publishes immediately and creates a history snapshot.
 
-## Technology
+## Security notes
 
-- **Backend:** Python and Flask
-- **Database:** SQLite for local development; a production database such as MySQL may be used for hosting
-- **Frontend:** HTML, CSS, and JavaScript
-- **API:** JSON over HTTP, versioned under `/api/v1/`
+- Passwords use Werkzeug's secure password hashing.
+- Admin and friend routes use session authentication and role checks.
+- POST forms use session-bound CSRF tokens.
+- API keys are never stored in plaintext.
+- Use HTTPS, a strong random `SECRET_KEY`, and secure deployment settings in production.
+- Set `COOKIE_SECURE=1` when the site is served exclusively over HTTPS.
+- This first release does not include email/password recovery. Admins can reset a friend's password from the dashboard.
 
-The final dependencies and project structure will be documented as implementation progresses.
+## Version 2.0.0
 
-## Development status
-
-The application has not been implemented yet. Installation and run instructions will be added once the initial application structure is ready.
-
-## Roadmap
-
-- [ ] Define the initial application structure and database schema
-- [ ] Build the public team-viewing page
-- [ ] Build the administrator dashboard and team editor
-- [ ] Add random team generation and draft/publish workflow
-- [ ] Add team history
-- [ ] Add the REST API and API-key management
-- [ ] Add individual view-only accounts for version **1.0.0**
-- [ ] Add interactive player profiles for version **2.0.0**
-
-## License
-
-No license has been selected yet. Until a license is added, the project remains under the default copyright terms.
+Interactive friend profiles (display name, availability, and related profile controls) are intentionally out of scope for v1.0.0.
