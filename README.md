@@ -1,11 +1,11 @@
 # Basketball Teams
 
-A full-stack basketball team manager built with Flask. It provides a public team page, an authenticated admin workspace, individual view-only friend accounts, publish-only history snapshots, and a versioned JSON API.
+A full-stack basketball team manager built with Flask. It provides a public team page, a single password-protected admin workspace, publish-only history snapshots, and a versioned JSON API.
 
 ## Version 1.0.0 features
 
 - Public current-team page and public historical snapshots.
-- Admin-only player and account management.
+- Admin-only player management and API-key controls.
 - Manual assignments, configurable team names, randomization and unlimited rerolls.
 - Drafts remain private until explicitly published.
 - Every publication creates a permanent history entry.
@@ -33,7 +33,7 @@ Open http://127.0.0.1:5000. The SQLite database is created automatically in `ins
 
 ## First-time admin setup
 
-Run `flask --app app create-admin` once and follow the prompts. Create the first admin before deploying or sharing the site. The admin dashboard is protected by login and role checks; hiding its URL is not security.
+Run `flask --app app create-admin` once and follow the prompts. Create the single administrator before deploying or sharing the site. Admin access is available at `/manage/login`; the homepage deliberately contains no link to the admin area. All `/manage` routes require the administrator session.
 
 ## PythonAnywhere deployment
 
@@ -96,12 +96,12 @@ The API accepts player names that already exist and are active in the roster. Ev
 ## Security notes
 
 - Passwords use Werkzeug's secure password hashing.
-- Admin and friend routes use session authentication and role checks.
+- Every `/manage` route requires the single administrator session.
 - POST forms use session-bound CSRF tokens.
 - API keys are never stored in plaintext.
 - Use HTTPS, a strong random `SECRET_KEY`, and secure deployment settings in production.
 - Set `COOKIE_SECURE=1` when the site is served exclusively over HTTPS.
-- This first release does not include email/password recovery. Admins can reset a friend's password from the dashboard. Historical snapshots can be loaded into a draft and republished as a new snapshot.
+- The application has no friend accounts or public sign-in. The administrator password is set through the CLI during initial setup. Historical snapshots can be loaded into a draft and republished as a new snapshot.
 
 ## License
 
