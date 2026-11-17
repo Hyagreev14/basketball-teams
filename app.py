@@ -154,8 +154,8 @@ def save_draft(data):
     db().commit()
 
 def clean_assignments(data):
-    if not isinstance(data, dict) or not data:
-        raise ValueError("Provide a non-empty teams object.")
+    if not isinstance(data, dict) or len(data) < 2:
+        raise ValueError("Create at least two teams.")
     names = [str(x).strip() for x in data.keys()]
     if any(not n or len(n) > 40 for n in names) or len(set(n.casefold() for n in names)) != len(names):
         raise ValueError("Team names must be unique and 1–40 characters.")
@@ -330,8 +330,8 @@ def edit():
         action = request.form.get("action")
         if action == "save":
             team_names = request.form.getlist("team_name")
-            if not team_names or any(not x.strip() for x in team_names):
-                flash("Every team needs a name.", "error")
+            if len(team_names) < 2 or any(not x.strip() for x in team_names) or len(set(x.strip().casefold() for x in team_names)) != len(team_names):
+                flash("Create at least two teams with unique, non-empty names.", "error")
             else:
                 draft = {x.strip(): [] for x in team_names}
                 for name in names:
